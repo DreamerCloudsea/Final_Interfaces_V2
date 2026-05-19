@@ -1,22 +1,32 @@
+# --- Core ---
+numpy==1.23.5
+Pillow==9.5.0
+pandas==1.5.3
 
-keras
-streamlit
-streamlit-webrtc
-numpy==1.26.3
-opencv-python-headless
-Pillow>=7.1.0
-tensorflow==2.12
+# --- Streamlit ---
+streamlit==1.22.0
+streamlit-webrtc==0.45.1
+streamlit-bokeh-events==0.1.2
+
+# --- ML ---
+tensorflow==2.12.0
+keras==2.12.0
+
+# --- Visión ---
+opencv-python-headless==4.7.0.72
+
+# --- MQTT ---
 paho-mqtt==1.6.1
 
+# --- Voz ---
 bokeh==2.4.3
-streamlit-bokeh-events
 gTTS==2.2.2
 googletrans==3.1.0a0
-Jinja2>=2.9
 
-contourpy>=1
-packaging>=16.8
-pandas>=1.2
-PyYAML>=3.10
-tornado>=5.1
-xyzservices>=2021.09.1
+# --- Dependencias bokeh ---
+Jinja2==3.0.3
+tornado==6.2
+packaging==23.0
+PyYAML==6.0
+contourpy==1.0.7
+xyzservices==2022.9.0
