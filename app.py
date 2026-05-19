@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import numpy as np
 from PIL import Image
@@ -6,6 +7,9 @@ import paho.mqtt.client as mqtt
 import json
 import platform
 import base64
+from bokeh.models.widgets import Button
+from bokeh.models import CustomJS
+from streamlit_bokeh_events import streamlit_bokeh_events
 
 # =====================================================
 # CONFIG STREAMLIT
@@ -47,9 +51,6 @@ if "autorizado" not in st.session_state:
 if "cofre_abierto" not in st.session_state:
     st.session_state.cofre_abierto = False
 
-if "input_key" not in st.session_state:
-    st.session_state.input_key = 0
-
 # =====================================================
 # FUNCIÓN MQTT
 # =====================================================
@@ -59,7 +60,6 @@ def publicar(topic, mensaje):
 
 # =====================================================
 # FUNCIÓN IMAGEN A BASE64
-# (necesario para incrustar en HTML dentro de Streamlit)
 # =====================================================
 
 def imagen_a_base64(path):
@@ -104,29 +104,79 @@ if img_file_buffer is not None:
         st.session_state.autorizado = False
 
 # =====================================================
-# COMANDOS DEL COFRE
+# CONTROL POR VOZ
 # =====================================================
 
 st.markdown("---")
-st.subheader("🎤 Control del Cofre")
+st.subheader("🎤 Control por Voz del Cofre")
 
 if st.session_state.autorizado:
 
-    comando = st.text_input(
-        "Escribe un comando",
-        placeholder="Abrete o Cierrate",
-        key=f"comando_{st.session_state.input_key}"
+    st.markdown("<p style='text-align:center;'>Presiona el botón y di <b>ábrete</b> o <b>ciérrate</b></p>", unsafe_allow_html=True)
+
+    stt_button = Button(
+        label="🎤 Iniciar Grabación",
+        width=200,
+        button_type="success"
     )
 
-    if comando.lower() == "abrete":
-        publicar(TOPIC_VOZ, {"cofre": "ABRIR"})
-        st.session_state.cofre_abierto = True
-        st.session_state.input_key += 1
+    stt_button.js_on_event("button_click", CustomJS(code="""
+        var recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'es-ES';
 
-    elif comando.lower() == "cierrate":
-        publicar(TOPIC_VOZ, {"cofre": "CERRAR"})
-        st.session_state.cofre_abierto = False
-        st.session_state.input_key += 1
+        recognition.onresult = function(e) {
+            var value = "";
+            for (var i = e.resultIndex; i < e.results.length; ++i) {
+                if (e.results[i].isFinal) {
+                    value += e.results[i][0].transcript;
+                }
+            }
+            if (value != "") {
+                document.dispatchEvent(new CustomEvent("GET_TEXT", {detail: value}));
+            }
+        }
+        recognition.start();
+    """))
+
+    result = streamlit_bokeh_events(
+        stt_button,
+        events="GET_TEXT",
+        key="listen",
+        refresh_on_update=False,
+        override_height=75,
+        debounce_time=0
+    )
+
+    # =====================================================
+    # PROCESAR COMANDO DE VOZ
+    # =====================================================
+
+    if result and "GET_TEXT" in result:
+        texto = result.get("GET_TEXT").strip().lower()
+
+        st.markdown(
+            f"<h4 style='text-align:center; color:#2c3e50;'>🗣️ Escuché: <i>{texto}</i></h4>",
+            unsafe_allow_html=True
+        )
+
+        # Variantes de comando para mayor tolerancia
+        comandos_abrir  = ["ábrete", "abrete", "abrir", "abre"]
+        comandos_cerrar = ["ciérrate", "cierrate", "cerrar", "cierra"]
+
+        if any(cmd in texto for cmd in comandos_abrir):
+            publicar(TOPIC_VOZ, {"cofre": "ABRIR"})
+            st.session_state.cofre_abierto = True
+            st.success("📦 Cofre abierto")
+
+        elif any(cmd in texto for cmd in comandos_cerrar):
+            publicar(TOPIC_VOZ, {"cofre": "CERRAR"})
+            st.session_state.cofre_abierto = False
+            st.warning("📦 Cofre cerrado")
+
+        else:
+            st.error(f"❌ Comando no reconocido: '{texto}'")
 
 else:
     st.warning("⚠️ Debe reconocerse un dueño primero")
@@ -138,11 +188,9 @@ else:
 st.markdown("---")
 st.subheader("📦 Estado del Cofre")
 
-# Convertir imágenes a base64 para incrustarlas en HTML
 b64_cerrado = imagen_a_base64("cofre_cerrado.png")
 b64_abierto = imagen_a_base64("cofre_abierto.png")
 
-# Opacidad según estado actual
 op_cerrado = 0 if st.session_state.cofre_abierto else 1
 op_abierto = 1 if st.session_state.cofre_abierto else 0
 
