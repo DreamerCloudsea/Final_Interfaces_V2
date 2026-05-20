@@ -67,6 +67,7 @@ st.markdown("""
 ========================= */
 
 h1, h2, h3 {
+    font-family: 'Orbitron', sans-serif !important;
     color: #e8faff !important;
     letter-spacing: 1px;
 }
