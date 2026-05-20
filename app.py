@@ -21,11 +21,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
     )
-
+st.markdown("""
+<style>
 .block-container {
     max-width: 1400px !important;
     margin: auto;
     }
+</style>
+""", unsafe_allow_html=True)
+
 # =====================================================
 # CYBERPUNK CSS — DASHBOARD FULL-SCREEN
 # =====================================================
