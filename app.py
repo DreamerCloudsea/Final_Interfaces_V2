@@ -398,6 +398,9 @@ if "ultima_confianza" not in st.session_state:
 if "ultimo_texto" not in st.session_state:
     st.session_state.ultimo_texto = ""
 
+if "needs_rerun" not in st.session_state:
+    st.session_state.needs_rerun = False
+
 # =====================================================
 # FUNCIÓN MQTT
 # =====================================================
@@ -677,15 +680,14 @@ with col3:
             comandos_cerrar = ["ciérrate", "cierrate", "cerrar", "cierra"]
 
             if any(cmd in texto for cmd in comandos_abrir):
-                publicar(TOPIC_VOZ, {"cofre": "ABRIR"})
-                st.session_state.cofre_abierto = True
-                st.rerun()  # ← forces full re-render
+               publicar(TOPIC_VOZ, {"cofre": "ABRIR"})
+               st.session_state.cofre_abierto = True
+               st.session_state.needs_rerun = True   # ← flag instead
 
             elif any(cmd in texto for cmd in comandos_cerrar):
                 publicar(TOPIC_VOZ, {"cofre": "CERRAR"})
                 st.session_state.cofre_abierto = False
-                st.rerun()  # ← forces full re-render
-
+                st.session_state.needs_rerun = True   # ← flag instead
             else:
                 st.error(f"Comando no reconocido: '{texto}'")
 
@@ -708,3 +710,6 @@ st.markdown("""
     SMART SAFE INTERFACE · CYBERPUNK HUD
 </div>
 """, unsafe_allow_html=True)
+if st.session_state.needs_rerun:
+    st.session_state.needs_rerun = False
+    st.rerun()
