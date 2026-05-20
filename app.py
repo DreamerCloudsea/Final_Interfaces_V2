@@ -21,14 +21,6 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="collapsed"
 )
-st.markdown("""
-<style>
-.block-container {
-    max-width: 1230px;
-    margin: auto;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # =====================================================
 # CYBERPUNK CSS — DASHBOARD FULL-SCREEN
@@ -39,8 +31,8 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
 
 :root {
-    --cyan:    #68a2eb;
-    --magenta: #c231c9;
+    --cyan:    #00f5ff;
+    --magenta: #ff2d78;
     --dark:    #080b14;
     --glass:   rgba(0, 245, 255, 0.04);
     --border:  rgba(0, 245, 255, 0.22);
@@ -465,7 +457,7 @@ with col_left:
         </div>
         <div class="data-row">
             <span class="label">› ACCESO</span>
-            <span class="value" style="color:{'#b9ffb5' if st.session_state.autorizado else '#5b2a62'}">
+            <span class="value" style="color:{'#00ff88' if st.session_state.autorizado else '#ff2d78'}">
                 {'AUTORIZADO' if st.session_state.autorizado else 'DENEGADO'}
             </span>
         </div>
