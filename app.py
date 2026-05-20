@@ -446,7 +446,7 @@ st.markdown(f"""
 # =====================================================
 
 col1, col2, col3 = st.columns([1.05, 1.0, 0.95], gap="medium")
-
+chest_placeholder = col2.empty()
 # =====================================================
 # RECONOCIMIENTO FACIAL
 # =====================================================
@@ -502,11 +502,100 @@ with col1:
     </div>
     """, unsafe_allow_html=True)
 
+
 # =====================================================
-# ESTADO VISUAL DEL COFRE
+# CONTROL POR VOZ
 # =====================================================
 
-with col2:
+with col3:
+    st.markdown("""
+    <div class="cyber-panel">
+        <div class="cyber-panel-title">Control por voz</div>
+        <div class="cyber-note">
+            Solo se habilita después del reconocimiento facial exitoso del dueño.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.session_state.autorizado:
+        st.markdown("""
+        <div class="cyber-panel">
+            <div class="cyber-note" style="text-align:center;">
+                Di <b class="neon-command">ábrete</b> o <b class="neon-command">ciérrate</b>.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        stt_button = Button(
+            label="INICIAR COMANDO DE VOZ",
+            width=280,
+            button_type="default"
+        )
+
+        stt_button.js_on_event("button_click", CustomJS(code="""
+            var recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'es-ES';
+
+            recognition.onresult = function(e) {
+                var value = "";
+                for (var i = e.resultIndex; i < e.results.length; ++i) {
+                    if (e.results[i].isFinal) {
+                        value += e.results[i][0].transcript;
+                    }
+                }
+                if (value != "") {
+                    document.dispatchEvent(new CustomEvent("GET_TEXT", {detail: value}));
+                }
+            }
+            recognition.start();
+        """))
+
+        result = streamlit_bokeh_events(
+            stt_button,
+            events="GET_TEXT",
+            key="listen",
+            refresh_on_update=False,
+            override_height=70,
+            debounce_time=0
+        )
+
+        if result and "GET_TEXT" in result:
+            texto = result.get("GET_TEXT").strip().lower()
+            st.session_state.ultimo_texto = texto
+
+            comandos_abrir = ["ábrete", "abrete", "abrir", "abre"]
+            comandos_cerrar = ["ciérrate", "cierrate", "cerrar", "cierra"]
+
+            if any(cmd in texto for cmd in comandos_abrir):
+                publicar(TOPIC_VOZ, {"cofre": "ABRIR"})
+                st.session_state.cofre_abierto = False
+                st.success("Cofre abierto")
+
+            elif any(cmd in texto for cmd in comandos_cerrar):
+                publicar(TOPIC_VOZ, {"cofre": "CERRAR"})
+                st.session_state.cofre_abierto = True
+                st.warning("Cofre cerrado")
+
+            else:
+                st.error(f"Comando no reconocido: '{texto}'")
+
+        st.markdown(
+            f"""
+            <div class="voice-result">
+                Último comando: <span class="neon-command">
+                {st.session_state.ultimo_texto if st.session_state.ultimo_texto else "SIN REGISTRO"}
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    else:
+        st.warning("Primero debe reconocerse un dueño")
+
+with chest_placeholder.container():
     st.markdown("""
     <div class="cyber-panel">
         <div class="cyber-panel-title">Estado del cofre</div>
@@ -610,99 +699,6 @@ with col2:
         """,
         unsafe_allow_html=True
     )
-
-# =====================================================
-# CONTROL POR VOZ
-# =====================================================
-
-with col3:
-    st.markdown("""
-    <div class="cyber-panel">
-        <div class="cyber-panel-title">Control por voz</div>
-        <div class="cyber-note">
-            Solo se habilita después del reconocimiento facial exitoso del dueño.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if st.session_state.autorizado:
-        st.markdown("""
-        <div class="cyber-panel">
-            <div class="cyber-note" style="text-align:center;">
-                Di <b class="neon-command">ábrete</b> o <b class="neon-command">ciérrate</b>.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        stt_button = Button(
-            label="INICIAR COMANDO DE VOZ",
-            width=280,
-            button_type="default"
-        )
-
-        stt_button.js_on_event("button_click", CustomJS(code="""
-            var recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'es-ES';
-
-            recognition.onresult = function(e) {
-                var value = "";
-                for (var i = e.resultIndex; i < e.results.length; ++i) {
-                    if (e.results[i].isFinal) {
-                        value += e.results[i][0].transcript;
-                    }
-                }
-                if (value != "") {
-                    document.dispatchEvent(new CustomEvent("GET_TEXT", {detail: value}));
-                }
-            }
-            recognition.start();
-        """))
-
-        result = streamlit_bokeh_events(
-            stt_button,
-            events="GET_TEXT",
-            key="listen",
-            refresh_on_update=False,
-            override_height=70,
-            debounce_time=0
-        )
-
-        if result and "GET_TEXT" in result:
-            texto = result.get("GET_TEXT").strip().lower()
-            st.session_state.ultimo_texto = texto
-
-            comandos_abrir = ["ábrete", "abrete", "abrir", "abre"]
-            comandos_cerrar = ["ciérrate", "cierrate", "cerrar", "cierra"]
-
-            if any(cmd in texto for cmd in comandos_abrir):
-                publicar(TOPIC_VOZ, {"cofre": "ABRIR"})
-                st.session_state.cofre_abierto = False
-                st.success("Cofre abierto")
-
-            elif any(cmd in texto for cmd in comandos_cerrar):
-                publicar(TOPIC_VOZ, {"cofre": "CERRAR"})
-                st.session_state.cofre_abierto = True
-                st.warning("Cofre cerrado")
-
-            else:
-                st.error(f"Comando no reconocido: '{texto}'")
-
-        st.markdown(
-            f"""
-            <div class="voice-result">
-                Último comando: <span class="neon-command">
-                {st.session_state.ultimo_texto if st.session_state.ultimo_texto else "SIN REGISTRO"}
-                </span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    else:
-        st.warning("Primero debe reconocerse un dueño")
-
 st.markdown("""
 <div class="cyber-footer">
     SMART SAFE INTERFACE · CYBERPUNK HUD
