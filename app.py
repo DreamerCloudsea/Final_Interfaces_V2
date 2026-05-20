@@ -681,12 +681,12 @@ with col3:
 
             if any(cmd in texto for cmd in comandos_abrir):
                publicar(TOPIC_VOZ, {"cofre": "ABRIR"})
-               st.session_state.cofre_abierto = True
+               st.session_state.cofre_abierto = False
                st.session_state.needs_rerun = True   # ← flag instead
 
             elif any(cmd in texto for cmd in comandos_cerrar):
                 publicar(TOPIC_VOZ, {"cofre": "CERRAR"})
-                st.session_state.cofre_abierto = False
+                st.session_state.cofre_abierto = True
                 st.session_state.needs_rerun = True   # ← flag instead
             else:
                 st.error(f"Comando no reconocido: '{texto}'")
