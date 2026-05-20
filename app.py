@@ -18,7 +18,7 @@ from streamlit_bokeh_events import streamlit_bokeh_events
 st.set_page_config(
     page_title="VAULT//SYSTEM",
     page_icon="🔐",
-    layout="centered"
+    layout="wide"
 )
 
 # =====================================================
