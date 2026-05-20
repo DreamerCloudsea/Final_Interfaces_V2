@@ -18,7 +18,7 @@ from streamlit_bokeh_events import streamlit_bokeh_events
 st.set_page_config(
     page_title="VAULT//SYSTEM",
     page_icon="🔐",
-    layout="centered",
+    layout="center",
     initial_sidebar_state="collapsed"
     )
 
@@ -88,6 +88,7 @@ h1 {
     font-family: 'Orbitron', sans-serif !important;
     font-weight: 900 !important;
     font-size: 1.6rem !important;
+    font-color: #00f5ff
     letter-spacing: 0.22em !important;
     text-transform: uppercase;
     background: linear-gradient(90deg, var(--cyan) 30%, var(--magenta) 100%);
