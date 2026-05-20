@@ -18,9 +18,10 @@ from streamlit_bokeh_events import streamlit_bokeh_events
 st.set_page_config(
     page_title="VAULT//SYSTEM",
     page_icon="🔐",
-    layout="wide",
+    #layout="wide",
     initial_sidebar_state="collapsed"
     )
+st.set_page_config(layout="wide")
 st.markdown("""
 <style>
 .block-container {
