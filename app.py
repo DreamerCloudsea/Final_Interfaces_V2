@@ -188,8 +188,8 @@ else:
 st.markdown("---")
 st.subheader("📦 Estado del Cofre")
 
-b64_cerrado = imagen_a_base64("cofre_cerrado.png")
-b64_abierto = imagen_a_base64("cofre_abierto.png")
+b64_cerrado = imagen_a_base64("safe_closed.png")
+b64_abierto = imagen_a_base64("safe_opened.png")
 
 op_cerrado = 0 if st.session_state.cofre_abierto else 1
 op_abierto = 1 if st.session_state.cofre_abierto else 0
