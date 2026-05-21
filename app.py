@@ -374,7 +374,11 @@ client.loop_start()
 # CARGAR MODELO
 # =====================================================
 
-model = load_model("keras_model.h5", compile=False)
+@st.cache_resource
+def cargar_modelo():
+    return load_model("keras_model.h5", compile=False)
+
+model = cargar_modelo()
 
 with open("labels.txt", "r") as f:
     class_names = f.read().splitlines()
@@ -465,7 +469,8 @@ with col1:
 
     if img_file_buffer is not None:
         image = Image.open(img_file_buffer).convert("RGB")
-        image = image.resize((224, 224))
+        image = Image.open(img_file_buffer).convert("RGB")
+        image.thumbnail((224, 224))
         image_array = np.array(image)
         normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1
 
